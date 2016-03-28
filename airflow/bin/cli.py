@@ -341,10 +341,11 @@ def webserver(args):
         print(
             'Running the Gunicorn server with {workers} {args.workerclass}'
             'workers on host {args.hostname} and port '
-            '{args.port}...'.format(**locals()))
+            '{args.port} with a timeout of {args.workertimeout}...'.format(**locals()))
+        timeout = conf.get('webserver', 'WEB_SERVER_WORKER_TIMEOUT')
         sp = subprocess.Popen([
             'gunicorn', '-w', str(args.workers), '-k', str(args.workerclass),
-            '-t', '120', '-b', args.hostname + ':' + str(args.port),
+            '-t', str(args.workertimeout), '-b', args.hostname + ':' + str(args.port),
             'airflow.www.app:cached_app()'])
         sp.wait()
 
@@ -557,6 +558,11 @@ class CLIFactory(object):
             default=conf.get('webserver', 'WORKER_CLASS'),
             choices=['sync', 'eventlet', 'gevent', 'tornado'],
             help="The worker class to use for gunicorn"),
+        'workertimeout': Arg(
+            ("-t", "--timeout"),
+            default=conf.get('webserver', 'WEB_SERVER_WORKER_TIMEOUT'),
+            type=int,
+            help="The timeout for waiting on webserver workers"),
         'hostname': Arg(
             ("-hn", "--hostname"),
             default=conf.get('webserver', 'WEB_SERVER_HOST'),
@@ -679,7 +685,7 @@ class CLIFactory(object):
         }, {
             'func': webserver,
             'help': "Start a Airflow webserver instance",
-            'args': ('port', 'workers', 'workerclass', 'hostname', 'debug'),
+            'args': ('port', 'workers', 'workerclass', 'workertimeout', 'hostname', 'debug'),
         }, {
             'func': resetdb,
             'help': "Burn down and rebuild the metadata database",

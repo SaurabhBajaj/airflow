@@ -90,6 +90,7 @@ defaults = {
         'base_url': 'http://localhost:8080',
         'web_server_host': '0.0.0.0',
         'web_server_port': '8080',
+        'web_server_worker_timeout': 120,
         'authenticate': False,
         'filter_by_owner': False,
         'demo_mode': False,
